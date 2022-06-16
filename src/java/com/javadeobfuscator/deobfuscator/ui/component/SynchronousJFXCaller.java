@@ -1,5 +1,8 @@
 package com.javadeobfuscator.deobfuscator.ui.component;
 
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsDevice.WindowTranslucency;
+import java.awt.Toolkit;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -67,10 +70,16 @@ public class SynchronousJFXCaller<T>
 		final AtomicBoolean taskCancelled = new AtomicBoolean(false);
 		// a trick to emulate modality:
 		final JDialog modalBlocker = new JDialog();
+		GraphicsDevice graphicsDevice = modalBlocker.getGraphicsConfiguration().getDevice();
 		modalBlocker.setModal(true);
 		modalBlocker.setUndecorated(true);
 		modalBlocker.setSize(0, 0);
-		modalBlocker.setOpacity(0.0f);
+
+		// Only set opacity if supported by graphics device
+		if (graphicsDevice.isWindowTranslucencySupported(WindowTranslucency.TRANSLUCENT)) {
+			modalBlocker.setOpacity(0.0f);
+		}
+
 		modalBlocker.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		final CountDownLatch modalityLatch = new CountDownLatch(1);
 		final FutureTask<T> task = new FutureTask<>(() ->
